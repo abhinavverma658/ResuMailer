@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Resumail",
+  "version": "1.0",
+  "description": "Send emails with your resume to recruiters using SMTP.",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.png"
+  }
+}

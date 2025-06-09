@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumail</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/bootstrap.bundle.js"></script>
+    <script src="js/popup.js"></script>
+    <script src="js/smtp.js"></script>
+    <script src="js/crypto-js.min.js"></script>
+</head>
+<body class="bg-light" style="font-family: sans-serif; margin: auto; width: 400px;">
+<div class="container-fluid">
+  <div class=" mb-3 mt-3">
+    <h1 class="h4 fw-bold text-center mb-4 text-primary">📧 Resumail</h1>
+      <div class="vstack gap-3">
+
+    <input type="text" id="position" placeholder="Position Applying For"
+      class="form-control" />
+
+    <input type="email" id="smtpEmail" placeholder="Your Gmail Address"
+      class="form-control" />
+
+    <input type="password" id="smtpPassword" placeholder="Gmail App Password"
+      class="form-control" />
+
+    <div>
+      <label for="excelFile" class="form-label small text-muted">Excel File (.xlsx)</label>
+      <input type="file" id="excelFile" accept=".xlsx" class="form-control form-control-sm" />
+    </div>
+
+    <div>
+      <label for="resumeFile" class="form-label small text-muted">Resume File (.pdf, .doc, .docx)</label>
+      <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" class="form-control form-control-sm" />
+    </div>
+
+    <button id="sendBtn" class="btn btn-primary w-100">Send Emails</button>
+
+    <div id="status" class="mt-2 small text-muted" style="white-space: pre-line;"></div>
+  </div>
+</div>
+</body>
+</html>
