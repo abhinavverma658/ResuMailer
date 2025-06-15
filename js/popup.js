@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     permissionBtn: getEl("requestFilePermissions"),
   };
 
-  // Load saved fields from chrome.storage
   chrome.storage.local.get(fields, (saved) => {
     fields.forEach((field) => {
       const el = getEl(field);
@@ -30,7 +29,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Save input changes
   fields.forEach((field) => {
     const el = getEl(field);
     el?.addEventListener("input", () => {
@@ -41,7 +39,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Toggle textarea for message input
   const toggleMessageVisibility = (useExcel) => {
     if (elements.defaultMessageWrapper)
       elements.defaultMessageWrapper.style.display = useExcel ? "none" : "block";
@@ -54,7 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
   }
 
-  // File Picker Functions
   const pickFile = async (type, fileTypes, pathFieldId) => {
     try {
       const [handle] = await window.showOpenFilePicker({ types: [fileTypes] });
@@ -85,7 +81,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, "excelFilePath")
   );
 
-  // Permission + Parsing
   const tryParseExcelIfPermitted = async () => {
     const excelHandle = await loadFileHandle("excel");
     if (!excelHandle) return console.log("Excel handle not found.");
@@ -107,7 +102,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Load saved file names and check permissions
   for (const type of ["resume", "excel"]) {
     const inputId = type + "FilePath";
     const inputField = getEl(inputId);
@@ -120,9 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         chrome.storage.local.set({ [inputId]: file.name });
 
         if (type === "excel") {
-          await tryParseExcelIfPermitted(); // 👈 Automatically triggers parsing if Excel
+          await tryParseExcelIfPermitted();
         }
-
       } catch (err) {
         inputField.value = "";
         chrome.storage.local.remove(inputId);
@@ -135,27 +128,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Button to manually check permission
+  // ✅ Explicit Permission Request Handler (Only triggers on user click)
   if (elements.permissionBtn) {
     elements.permissionBtn.addEventListener("click", async () => {
       for (const type of ["resume", "excel"]) {
         const handle = await loadFileHandle(type);
         if (!handle) {
-          alert(`No ${type} file handle found.`);
+          alert(`No ${type} file handle found. Please select it first.`);
           continue;
         }
-        const granted = await hasPermission(handle);
-        alert(`${type} file access ${granted ? "granted" : "denied"}.`);
 
-        if (type === "excel" && granted) {
-          await tryParseExcelIfPermitted();
+        try {
+          const result = await handle.requestPermission({ mode: "read" });
+          if (result === "granted") {
+            alert(`${type} permission granted.`);
+            if (type === "excel") await tryParseExcelIfPermitted();
+          } else if (result === "denied") {
+            alert(`${type} permission denied.`);
+          } else {
+            alert(`${type} permission prompt dismissed or unknown result.`);
+          }
+        } catch (err) {
+          alert(`Error requesting permission for ${type}: ${err.message}`);
         }
       }
     });
   }
 });
 
-// Message template generator
+// Template generator
 function getFinalMessage(row, position, company) {
   const useExcelMessage = document.getElementById("useExcelMessage")?.checked;
   const defaultMessage = document.getElementById("defaultMessage")?.value || "";
@@ -166,7 +167,7 @@ function getFinalMessage(row, position, company) {
         .replaceAll("{{company}}", company);
 }
 
-// === IndexedDB Storage for FileHandles ===
+// IndexedDB functions
 const openHandleDB = () => new Promise((resolve, reject) => {
   const req = indexedDB.open("fileHandlesDB", 1);
   req.onupgradeneeded = () => req.result.createObjectStore("handles");
@@ -208,7 +209,5 @@ const hasPermission = async (handle) => {
   if (!handle) return false;
   const opts = { mode: 'read' };
   let perm = await handle.queryPermission?.(opts);
-  if (perm === 'granted') return true;
-  perm = await handle.requestPermission?.(opts);
   return perm === 'granted';
 };
