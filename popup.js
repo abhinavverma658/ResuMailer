@@ -1,24 +1,24 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  async function sendEmailViaServer({ from, to, subject, message, password, file, filename }) {
-    const base64 = await fileToBase64(file);
+  // async function sendEmailViaServer({ from, to, subject, message, password, file, filename }) {
+  //   const base64 = await fileToBase64(file);
   
-    const res = await fetch("http://localhost:3000/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from,
-        to,
-        subject,
-        body: message,
-        password,
-        attachment: base64,
-        filename,
-      }),
-    });
+  //   const res = await fetch("http://localhost:3000/send-email", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       from,
+  //       to,
+  //       subject,
+  //       body: message,
+  //       password,
+  //       attachment: base64,
+  //       filename,
+  //     }),
+  //   });
   
-    const result = await res.json();
-    return result;
-  }  
+  //   const result = await res.json();
+  //   return result;
+  // }  
   const fields = ["position", "smtpEmail", "smtpPassword", "defaultMessage", "resumeFilePath", "excelFilePath"];
   const getEl = id => document.getElementById(id);
   const secretKey = "resumail_secret";
@@ -167,82 +167,154 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // elements.sendBtn?.addEventListener("click", async () => {
+  //   console.log("✅ Send button clicked");
+    
+  //   const smtpEmail = getEl("smtpEmail").value;
+  //   const smtpPassword = getEl("smtpPassword").value;
+  //   const position = getEl("position").value;
+  //   const statusEl = document.getElementById("statusMessage");
+  //   statusEl.style.color = "black";
+  //   statusEl.textContent = "Preparing to send...";
+  
+  //   const resumeHandle = await loadFileHandle("resume");
+  //   if (!resumeHandle || !(await hasPermission(resumeHandle))) {
+  //     alert("Resume file not accessible.");
+  //     console.log("❌ Resume not accessible");
+  //     return;
+  //   }
+  
+  //   console.log("📄 Resume loaded");
+  
+  //   const resumeFile = await resumeHandle.getFile();
+  //   chrome.storage.local.get("parsedExcelRows", async ({ parsedExcelRows }) => {
+  //     console.log("📊 Fetched parsedExcelRows:", parsedExcelRows);
+  
+  //     if (!parsedExcelRows || parsedExcelRows.length === 0) {
+  //       alert("No data found in Excel file.");
+  //       return;
+  //     }
+  
+  //     for (const [index, row] of parsedExcelRows.entries()) {
+  //       const toEmail = row.Email?.trim();
+  //       const companyName = row.Company?.trim() || "Company";
+      
+  //       if (!toEmail) {
+  //         console.warn(`⚠️ Row ${index + 1} skipped — no email found.`);
+  //         continue;
+  //       }
+      
+  //       const finalBody = getFinalMessage(row, position, companyName);
+  //       const emailPayload = {
+  //         from: smtpEmail,
+  //         to: toEmail,
+  //         subject: `Application for ${position}`,
+  //         message: finalBody,
+  //         password: smtpPassword,
+  //         file: resumeFile,
+  //         filename: resumeFile.name,
+  //       };
+      
+  //       console.log(`📤 [${index + 1}] Sending email to: ${toEmail}`);
+  //       console.log("📦 Payload:", {
+  //         from: smtpEmail,
+  //         to: toEmail,
+  //         subject: `Application for ${position}`,
+  //         filename: resumeFile.name,
+  //         previewMessage: finalBody.slice(0, 100) + (finalBody.length > 100 ? "..." : "")
+  //       });
+      
+  //       try {
+  //         const result = await sendEmailViaServer(emailPayload);
+  //         console.log("📨 Server response:", result);
+      
+  //         if (result.success) {
+  //           statusEl.style.color = "green";
+  //           statusEl.textContent = `✅ Email sent to ${toEmail}`;
+  //         } else {
+  //           throw new Error(result.message);
+  //         }
+  //       } catch (err) {
+  //         console.error(`❌ Failed to send to ${toEmail}:`, err);
+  //         statusEl.style.color = "red";
+  //         statusEl.textContent = `❌ Error sending to ${toEmail}: ${err.message}`;
+  //       }
+  //     }
+  //     console.log("✅ All emails processed.");      
+  //   });
+  // });  
   elements.sendBtn?.addEventListener("click", async () => {
     console.log("✅ Send button clicked");
-    
+  
     const smtpEmail = getEl("smtpEmail").value;
     const smtpPassword = getEl("smtpPassword").value;
     const position = getEl("position").value;
     const statusEl = document.getElementById("statusMessage");
+  
     statusEl.style.color = "black";
     statusEl.textContent = "Preparing to send...";
   
     const resumeHandle = await loadFileHandle("resume");
     if (!resumeHandle || !(await hasPermission(resumeHandle))) {
       alert("Resume file not accessible.");
-      console.log("❌ Resume not accessible");
       return;
     }
   
-    console.log("📄 Resume loaded");
-  
     const resumeFile = await resumeHandle.getFile();
-    chrome.storage.local.get("parsedExcelRows", async ({ parsedExcelRows }) => {
-      console.log("📊 Fetched parsedExcelRows:", parsedExcelRows);
+    const resumeBase64 = await fileToBase64(resumeFile);
   
+    chrome.storage.local.get("parsedExcelRows", async ({ parsedExcelRows }) => {
       if (!parsedExcelRows || parsedExcelRows.length === 0) {
         alert("No data found in Excel file.");
         return;
       }
   
-      for (const [index, row] of parsedExcelRows.entries()) {
-        const toEmail = row.Email?.trim();
-        const companyName = row.Company?.trim() || "Company";
-      
-        if (!toEmail) {
-          console.warn(`⚠️ Row ${index + 1} skipped — no email found.`);
-          continue;
-        }
-      
-        const finalBody = getFinalMessage(row, position, companyName);
-        const emailPayload = {
-          from: smtpEmail,
-          to: toEmail,
-          subject: `Application for ${position}`,
-          message: finalBody,
-          password: smtpPassword,
-          file: resumeFile,
-          filename: resumeFile.name,
-        };
-      
-        console.log(`📤 [${index + 1}] Sending email to: ${toEmail}`);
-        console.log("📦 Payload:", {
-          from: smtpEmail,
-          to: toEmail,
-          subject: `Application for ${position}`,
-          filename: resumeFile.name,
-          previewMessage: finalBody.slice(0, 100) + (finalBody.length > 100 ? "..." : "")
-        });
-      
-        try {
-          const result = await sendEmailViaServer(emailPayload);
-          console.log("📨 Server response:", result);
-      
-          if (result.success) {
-            statusEl.style.color = "green";
-            statusEl.textContent = `✅ Email sent to ${toEmail}`;
-          } else {
-            throw new Error(result.message);
-          }
-        } catch (err) {
-          console.error(`❌ Failed to send to ${toEmail}:`, err);
-          statusEl.style.color = "red";
-          statusEl.textContent = `❌ Error sending to ${toEmail}: ${err.message}`;
-        }
-      }
-      console.log("✅ All emails processed.");      
+      const useExcel = elements.checkbox.checked;
+      const defaultMessage = getEl("defaultMessage")?.value || "";
+  
+     chrome.runtime.sendMessage({
+    type: "sendEmails",
+    payload: {
+      rows: parsedExcelRows,
+      smtpEmail,
+      smtpPassword,
+      position,
+      resume: {
+        name: resumeFile.name,
+        base64: resumeBase64,
+      },
+      useExcel,
+      defaultMessage
+    },
+  },
+  (response) => {
+    if (chrome.runtime.lastError) {
+      console.error("❌ Message error:", chrome.runtime.lastError.message);
+      statusEl.style.color = "red";
+      statusEl.textContent = "❌ Failed to connect to background script.";
+      return;
+    }
+
+    if (response?.status === "done") {
+      statusEl.style.color = "green";
+      statusEl.textContent = "✅ All emails sent.";
+    } else {
+      statusEl.style.color = "red";
+      statusEl.textContent = "❌ Failed to send some or all emails.";
+    }
+  }
+);
+chrome.runtime.sendMessage({ type: "ping" }, (response) => {
+  if (chrome.runtime.lastError) {
+    console.error("❌ Message error:", chrome.runtime.lastError.message);
+  } else {
+    console.log("✅ Background response:", response);
+  }
+});
+ 
     });
-  });  
+  });
+  console.log("✅ Popup script loaded successfully.");  
 });
 
 function getFinalMessage(row, position, company) {
@@ -318,3 +390,15 @@ const hasPermission = async (handle) => {
   return perm === 'granted';
 };
 chrome.storage.local.get("parsedExcelRows", console.log);
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "emailStatusUpdate") {
+    const { toEmail, status, message } = request.payload;
+    const statusEl = document.getElementById("statusMessage");
+    if (!statusEl) return;
+
+    statusEl.innerHTML += `<div style="color:${status === "sent" ? "green" : "red"}">
+      ${status === "sent" ? "✅" : "❌"} ${toEmail} — ${message}
+    </div>`;
+  }
+});

@@ -3,17 +3,14 @@
   "name": "Resumail",
   "version": "1.0",
   "description": "Send emails with your resume to recruiters using SMTP.",
-  "permissions": ["storage"],
+  "permissions": ["storage","scripting"],
+  "host_permissions": ["http://localhost:3000/"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icons/icon.png"
   },
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "content_security_policy": {
   "extension_pages": "script-src 'self'; object-src 'self'"
