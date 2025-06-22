@@ -3,7 +3,13 @@
   "name": "ResuMailer",
   "version": "1.2.0",
   "description": "Send emails with your resume to recruiters using SMTP.",
-  "permissions": ["storage", "scripting"],
+  "permissions": [
+  "storage",
+  "activeTab",
+  "scripting",
+  "identity",
+  "https://resumail-server.onrender.com/"
+],
   "host_permissions": ["https://resumailer.onrender.com/*"],
   "action": {
     "default_popup": "popup.html",
