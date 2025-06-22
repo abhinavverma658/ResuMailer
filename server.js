@@ -7,21 +7,21 @@ const app = express();
 
 const EXTENSION_ORIGIN = "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd";
 
-// 🔁 Reusable CORS config object
-const corsOptions = {
-  origin: EXTENSION_ORIGIN,
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
-};
+// ✅ Set headers manually
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", EXTENSION_ORIGIN);
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-// Apply CORS middleware globally
-app.use(cors(corsOptions));
-
-// ✅ Apply CORS to preflight OPTIONS requests (same config)
-app.options("*", cors(corsOptions));
-
+// ✅ Body parsing
 app.use(express.json({ limit: "10mb" }));
 
+// ✅ Email API
 app.post("/send-email", async (req, res) => {
   const { from, to, subject, body, password, attachment, filename } = req.body;
 
@@ -60,11 +60,13 @@ app.post("/send-email", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// ✅ Health check
 app.get("/", (req, res) => {
   res.send("✅ Nodemailer server is running.");
 });
 
-app.listen(PORT, () =>
-  console.log(`✅ Server running on http://localhost:${PORT}`)
-);
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
