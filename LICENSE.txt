@@ -1,0 +1,20 @@
+Copyright (c) 2025 Abhinav Verma  
+All Rights Reserved
+
+Permission is granted to users to use this software solely for personal or internal non-commercial purposes.
+
+You are NOT permitted to:
+- Copy, modify, or create derivative works based on the Software
+- Merge, reverse engineer, or decompile any part of the Software
+- Redistribute, sublicense, publish, or resell the Software or any portion of it
+- Use the Software in any commercial product or service
+- Remove or alter any copyright, trademark, or proprietary notices
+
+Any violation of these terms may result in legal action.
+
+This software is provided “as is,” without warranty of any kind.
+
+For licensing or usage beyond the terms above, please contact:
+Abhinav Verma  
+Email: abhinavverma658@gmail.com  
+Website: https://abhinavverma658.tech/
