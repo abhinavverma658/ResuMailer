@@ -7,7 +7,14 @@ const app = express();
 // 🔐 Extension origin (for real users, this must be updated if their ID changes)
 const EXTENSION_ORIGIN = "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd";
 
-// ✅ Set CORS headers on every request
+// Better CORS handling with the cors package
+app.use(cors({
+  origin: [EXTENSION_ORIGIN, "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd"],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+// Keep your existing CORS middleware as fallback
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", EXTENSION_ORIGIN);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -19,6 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Rest of your code remains the same
 app.use(express.json({ limit: "10mb" }));
 
 // ✅ POST /send-email
