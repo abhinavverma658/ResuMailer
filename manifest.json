@@ -7,8 +7,7 @@
   "storage",
   "activeTab",
   "scripting",
-  "identity",
-  "https://resumail-server.onrender.com/"
+  "identity"
 ],
   "host_permissions": ["https://resumailer.onrender.com/*"],
   "action": {
