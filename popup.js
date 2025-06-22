@@ -339,7 +339,7 @@ async function fileToBase64(file) {
 async function sendWithRetry(payload, retries = 2) {
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
     try {
-      const res = await fetch("http://localhost:3000/send-email", {
+      const res = await fetch("https://resumail-server.onrender.com/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

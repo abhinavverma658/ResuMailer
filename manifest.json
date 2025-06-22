@@ -4,7 +4,7 @@
   "version": "1.2.0",
   "description": "Send emails with your resume to recruiters using SMTP.",
   "permissions": ["storage", "scripting"],
-  "host_permissions": ["http://localhost:3000/"],
+  "host_permissions": ["https://resumailer.onrender.com/*"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icons/icon128.png"
