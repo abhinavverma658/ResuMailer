@@ -5,13 +5,18 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const allowedOrigin = process.env.ALLOWED_ORIGIN;
+
+// ✅ CORS Fix: allow extension origin
+const EXTENSION_ORIGIN = "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd";
 
 app.use(cors({
-  origin: allowedOrigin,
-  methods: ["GET", "POST"],
+  origin: EXTENSION_ORIGIN,
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
+
+// ✅ Important for preflight (OPTIONS) requests
+app.options("*", cors());
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -27,7 +32,7 @@ app.post("/send-email", async (req, res) => {
       service: "Gmail",
       auth: {
         user: from,
-        pass: password, // Must be app password
+        pass: password, // Gmail app password required
       },
     });
 
@@ -45,13 +50,20 @@ app.post("/send-email", async (req, res) => {
     res.json({ success: true, message: "Email sent successfully!" });
   } catch (error) {
     console.error("Email error:", error);
-    res.status(500).json({ success: false, message: "Failed to send email.", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to send email.",
+      error: error.message,
+    });
   }
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.get("/", (req, res) => {
-    res.send("✅ Nodemailer server is running.");
-  });
-  
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+  res.send("✅ Nodemailer server is running.");
+});
+
+app.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT}`)
+);
