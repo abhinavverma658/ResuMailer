@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -6,17 +5,20 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ CORS Fix: allow extension origin
 const EXTENSION_ORIGIN = "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd";
 
-app.use(cors({
+// 🔁 Reusable CORS config object
+const corsOptions = {
   origin: EXTENSION_ORIGIN,
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
-}));
+  allowedHeaders: ["Content-Type"],
+};
 
-// ✅ Important for preflight (OPTIONS) requests
-app.options("*", cors());
+// Apply CORS middleware globally
+app.use(cors(corsOptions));
+
+// ✅ Apply CORS to preflight OPTIONS requests (same config)
+app.options("*", cors(corsOptions));
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -32,7 +34,7 @@ app.post("/send-email", async (req, res) => {
       service: "Gmail",
       auth: {
         user: from,
-        pass: password, // Gmail app password required
+        pass: password,
       },
     });
 
@@ -59,7 +61,6 @@ app.post("/send-email", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.get("/", (req, res) => {
   res.send("✅ Nodemailer server is running.");
 });
