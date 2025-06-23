@@ -14,7 +14,7 @@ app.use(cors({
   origin: [
     EXTENSION_ORIGIN,
     "http://localhost", // for local testing
-    "https://resumail-server.onrender.com" // your Render domain
+    "https://resumailer.onrender.com" // your Render domain
   ],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"],
