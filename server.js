@@ -6,15 +6,20 @@ require("dotenv").config();
 const app = express();
 
 // 🔐 Extension origin (for real users, this must be updated if their ID changes)
-const EXTENSION_ORIGIN = "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd";
+// Update your CORS configuration to this:
+const EXTENSION_ID = "iobkboneibdcnodgpiafkekccdjjiikd";
+const EXTENSION_ORIGIN = `chrome-extension://${EXTENSION_ID}`;
 
-// Better CORS handling with the cors package
 app.use(cors({
-  origin: [EXTENSION_ORIGIN, "chrome-extension://iobkboneibdcnodgpiafkekccdjjiikd"],
+  origin: [
+    EXTENSION_ORIGIN,
+    "http://localhost", // for local testing
+    "https://resumail-server.onrender.com" // your Render domain
+  ],
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type"],
+  credentials: true
 }));
-
 // Keep your existing CORS middleware as fallback
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", EXTENSION_ORIGIN);
