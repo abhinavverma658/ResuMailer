@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           .replaceAll("{{company}}", company);
 
         try {
-          const res = await fetch("https://resumail-server.onrender.com/send-email", {
+          const res = await fetch("https://resumailer.onrender.com/send-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
