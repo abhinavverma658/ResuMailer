@@ -4,7 +4,6 @@
   "version": "1.2.0",
   "description": "Send emails with your resume to recruiters using SMTP.",
   "permissions": [
-  "https://resumail-server.onrender.com/*",
   "storage",
   "activeTab",
   "scripting",
@@ -19,7 +18,7 @@
     "service_worker": "background.js"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://resumail-server.onrender.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://resumailer.onrender.com"
   },
   "icons": {
     "16": "icons/icon16.png",
