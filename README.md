@@ -1,6 +1,6 @@
-# 📧 ResuMailer - Chrome Extension for Bulk Resume Emailing
+# 📧 ResuMailerer - Chrome Extension for Bulk Resume Emailing
 
-ResuMailer is a Chrome Extension that eases the process of sending job application emails using Gmail SMTP. It reads recipient data from an Excel sheet, personalizes messages, attaches your resume, and sends emails—all from a user-friendly interface.
+ResuMailerer is a Chrome Extension that eases the process of sending job application emails using Gmail SMTP. It reads recipient data from an Excel sheet, personalizes messages, attaches your resume, and sends emails—all from a user-friendly interface.
 
 ---
 
@@ -92,10 +92,9 @@ Each permission is used strictly within the extension and **never for tracking**
 
 ---
 
-## 📬 Suggest Beta Release Date
+## 📬 Public Release
 
-The beta version is nearly ready! I'm collecting suggestions for a public release date — **drop your idea in the comments below** 👇  
-Use hashtag **#CFBR** to help others discover ResuMail!
+The beta version is nearly ready! 
 
 ---
 
@@ -109,11 +108,11 @@ Follow me on [LinkedIn](https://www.linkedin.com/in/abhinavverma658/) to stay up
 
 ---
 
-# Author: [Abhinav Verma]
+## Author: [Abhinav Verma]
 
-# Version: 1.2.4
+## Version: 1.2.4
 
-# Last Updated: 28-06-2025
+## Last Updated: 28-06-2025
 
 ## © 2025 Abhinav Verma. All Rights Reserved.
 
