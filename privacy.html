@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - ResuMailer Chrome Extension</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy Policy – ResuMailer Chrome Extension</h1>
+
+    <p><strong>Last updated:</strong> June 28, 2025</p>
+
+    <p>
+      ResuMailer is a productivity Chrome Extension that helps job seekers send
+      personalized resume emails in bulk via Gmail using Excel input. We take
+      your privacy seriously and are committed to transparency about how your
+      data is handled.
+    </p>
+
+    <h2>1. Data Collection & Storage</h2>
+    <ul>
+      <li>
+        We do <strong>not collect</strong> or transmit any personal data to
+        external servers.
+      </li>
+      <li>
+        All data including email, resume file path, and Excel content is stored
+        locally in your browser using <code>chrome.storage.local</code> and the
+        <code>IndexedDB</code> API.
+      </li>
+      <li>
+        Your Gmail app password is encrypted using
+        <strong>AES encryption (via CryptoJS)</strong> and stored only on your
+        local machine.
+      </li>
+      <li>No data is synced, uploaded to the cloud, or accessed remotely.</li>
+    </ul>
+
+    <h2>2. Permissions Explanation</h2>
+    <ul>
+      <li>
+        <strong>activeTab:</strong> To allow interaction only with the current
+        tab, as needed.
+      </li>
+      <li>
+        <strong>scripting:</strong> Used to dynamically manage DOM actions in
+        the extension UI.
+      </li>
+      <li>
+        <strong>storage:</strong> Used for saving extension preferences and
+        local data inputs.
+      </li>
+      <li>
+        <strong>host permissions:</strong> Required to enable file handling via
+        the File System Access API.
+      </li>
+    </ul>
+
+    <h2>3. Security & Encryption</h2>
+    <p>
+      Sensitive fields like your Gmail password are encrypted using
+      <code>AES</code> before storage. Your credentials never leave your system.
+      The extension does not track, share, or monitor your usage.
+    </p>
+
+    <h2>4. No Analytics or Tracking</h2>
+    <p>
+      We do not use Google Analytics or any tracking mechanisms in this
+      extension. Your usage remains entirely private.
+    </p>
+
+    <h2>5. Contact</h2>
+    <p>
+      For questions, suggestions, or bug reports, please reach out to:
+      <a href="mailto:abhinavverma658@gmail.com">abhinavverma658@gmail.com</a>
+    </p>
+
+    <p>
+      Thank you for trusting ResuMailer. We are committed to respecting your
+      data and privacy.
+    </p>
+  </body>
+</html>

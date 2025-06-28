@@ -1,24 +1,4 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // async function sendEmailViaServer({ from, to, subject, message, password, file, filename }) {
-  //   const base64 = await fileToBase64(file);
-  
-  //   const res = await fetch("http://localhost:3000/send-email", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({
-  //       from,
-  //       to,
-  //       subject,
-  //       body: message,
-  //       password,
-  //       attachment: base64,
-  //       filename,
-  //     }),
-  //   });
-  
-  //   const result = await res.json();
-  //   return result;
-  // }  
   const fields = ["position", "smtpEmail", "smtpPassword", "defaultMessage", "resumeFilePath", "excelFilePath"];
   const getEl = id => document.getElementById(id);
   const secretKey = "resumail_secret";
@@ -87,13 +67,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log("File selection cancelled or failed:", err);
     }
   };
-
+  const updateResumeStatus = async () => {
+    const statusEl = document.getElementById("resumeStatus");
+    const resumeHandle = await loadFileHandle("resume");
+  
+    if (resumeHandle) {
+      statusEl.textContent = "✅ Resume is already saved in local storage.";
+      statusEl.classList.remove("text-danger");
+      statusEl.classList.add("text-success");
+    } else {
+      statusEl.textContent = "⚠️ No resume found in local storage. Please select a resume.";
+      statusEl.classList.remove("text-success");
+      statusEl.classList.add("text-danger");
+    }
+  };  
   elements.selectResumeBtn?.addEventListener("click", () =>
     pickFile("resume", {
       description: "Resume Files",
       accept: { "application/pdf": [".pdf"], "application/msword": [".doc", ".docx"] }
     }, "resumeFilePath")
   );
+  
 
   elements.selectExcelBtn?.addEventListener("click", () =>
     pickFile("excel", {
@@ -104,24 +98,51 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const tryParseExcelIfPermitted = async () => {
     const excelHandle = await loadFileHandle("excel");
+    const successEl = document.getElementById("excelParseSuccess");
+    const errorEl = document.getElementById("excelParseError");
+  
+    // Hide both messages
+    successEl?.classList.add("d-none");
+    errorEl?.classList.add("d-none");
+  
     if (!excelHandle) return console.log("Excel handle not found.");
-
+  
     const granted = await hasPermission(excelHandle);
     if (!granted) return console.log("Excel permission not granted.");
-
+  
     try {
       const file = await excelHandle.getFile();
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
+  
+      // ✅ Check for valid keys only
+      const allowedFields = ["Email", "Company", "Message"];
+      const hasInvalidField = rows.some(row => {
+        const keys = Object.keys(row);
+        return keys.some(key => !allowedFields.includes(key));
+      });
+  
+      if (hasInvalidField) {
+        console.warn("❌ Invalid columns detected in Excel.");
+        errorEl?.classList.remove("d-none");
+        setTimeout(() => errorEl?.classList.add("d-none"), 5000);
+        return;
+      }
+  
       console.log("✅ Excel parsed successfully:", rows);
       chrome.storage.local.set({ parsedExcelRows: rows });
+  
+      successEl?.classList.remove("d-none");
+      setTimeout(() => successEl?.classList.add("d-none"), 4000);
     } catch (err) {
       console.error("❌ Error parsing Excel:", err);
+      errorEl?.classList.remove("d-none");
+      setTimeout(() => errorEl?.classList.add("d-none"), 5000);
     }
   };
+  
 
   for (const type of ["resume", "excel"]) {
     const inputId = type + "FilePath";
@@ -167,82 +188,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // elements.sendBtn?.addEventListener("click", async () => {
-  //   console.log("✅ Send button clicked");
-    
-  //   const smtpEmail = getEl("smtpEmail").value;
-  //   const smtpPassword = getEl("smtpPassword").value;
-  //   const position = getEl("position").value;
-  //   const statusEl = document.getElementById("statusMessage");
-  //   statusEl.style.color = "black";
-  //   statusEl.textContent = "Preparing to send...";
-  
-  //   const resumeHandle = await loadFileHandle("resume");
-  //   if (!resumeHandle || !(await hasPermission(resumeHandle))) {
-  //     alert("Resume file not accessible.");
-  //     console.log("❌ Resume not accessible");
-  //     return;
-  //   }
-  
-  //   console.log("📄 Resume loaded");
-  
-  //   const resumeFile = await resumeHandle.getFile();
-  //   chrome.storage.local.get("parsedExcelRows", async ({ parsedExcelRows }) => {
-  //     console.log("📊 Fetched parsedExcelRows:", parsedExcelRows);
-  
-  //     if (!parsedExcelRows || parsedExcelRows.length === 0) {
-  //       alert("No data found in Excel file.");
-  //       return;
-  //     }
-  
-  //     for (const [index, row] of parsedExcelRows.entries()) {
-  //       const toEmail = row.Email?.trim();
-  //       const companyName = row.Company?.trim() || "Company";
-      
-  //       if (!toEmail) {
-  //         console.warn(`⚠️ Row ${index + 1} skipped — no email found.`);
-  //         continue;
-  //       }
-      
-  //       const finalBody = getFinalMessage(row, position, companyName);
-  //       const emailPayload = {
-  //         from: smtpEmail,
-  //         to: toEmail,
-  //         subject: `Application for ${position}`,
-  //         message: finalBody,
-  //         password: smtpPassword,
-  //         file: resumeFile,
-  //         filename: resumeFile.name,
-  //       };
-      
-  //       console.log(`📤 [${index + 1}] Sending email to: ${toEmail}`);
-  //       console.log("📦 Payload:", {
-  //         from: smtpEmail,
-  //         to: toEmail,
-  //         subject: `Application for ${position}`,
-  //         filename: resumeFile.name,
-  //         previewMessage: finalBody.slice(0, 100) + (finalBody.length > 100 ? "..." : "")
-  //       });
-      
-  //       try {
-  //         const result = await sendEmailViaServer(emailPayload);
-  //         console.log("📨 Server response:", result);
-      
-  //         if (result.success) {
-  //           statusEl.style.color = "green";
-  //           statusEl.textContent = `✅ Email sent to ${toEmail}`;
-  //         } else {
-  //           throw new Error(result.message);
-  //         }
-  //       } catch (err) {
-  //         console.error(`❌ Failed to send to ${toEmail}:`, err);
-  //         statusEl.style.color = "red";
-  //         statusEl.textContent = `❌ Error sending to ${toEmail}: ${err.message}`;
-  //       }
-  //     }
-  //     console.log("✅ All emails processed.");      
-  //   });
-  // });  
   elements.sendBtn?.addEventListener("click", async () => {
     console.log("✅ Send button clicked");
   
