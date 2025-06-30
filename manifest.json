@@ -1,13 +1,10 @@
 {
   "manifest_version": 3,
   "name": "ResuMailer",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Send emails with your resume to recruiters using SMTP.",
   "permissions": [
-  "storage",
-  "activeTab",
-  "scripting",
-  "identity"
+  "storage"
 ],
   "host_permissions": ["https://resumailer.onrender.com/*"],
   "action": {
