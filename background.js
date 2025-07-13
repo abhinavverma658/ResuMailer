@@ -4,24 +4,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const { rows, smtpEmail, smtpPassword, position, resume, useExcel, defaultMessage } = request.payload;
       const results = [];
 
+      // Helper to wait for ms
+      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
       for (const [index, row] of rows.entries()) {
+        // Add delay before sending, except for the first email
+       if (!row.Email) continue;
+
+  if (index > 0) {
+    const delay = 30;
+    // console.log(`⏳ Waiting ${delay}s before sending email #${index + 1} to ${row.Email}`);
+
+    for (let t = delay; t > 0; t--) {
+      chrome.runtime.sendMessage({
+        type: "emailTimerUpdate",
+        payload: {
+          nextEmailIndex: index + 1,
+          secondsLeft: t
+        }
+      });
+
+      await sleep(1000); // 1 second
+    }
+  }
+  // ✅ Now send the email
+  // console.log(`📤 Sending email #${index + 1} to ${row.Email}`);
         const toEmail = row.Email || row.email;
         const company = row.Company || row.company || "Company";
-        // const messageTemplate = row.Message || row.message || defaultMessage;
-        const messageTemplate = (useExcel && (row.Message || row.message)) 
-  ? (row.Message || row.message) 
-  : defaultMessage;
+        const messageTemplate = (useExcel && (row.Message || row.message))
+          ? (row.Message || row.message)
+          : defaultMessage;
 
         if (!toEmail) {
           const skipped = { index, toEmail, status: "skipped", reason: "Missing email" };
           results.push(skipped);
-
-          // Send skipped status to popup
           chrome.runtime.sendMessage({
             type: "emailStatusUpdate",
             payload: skipped
           });
-
           continue;
         }
 
@@ -44,7 +64,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }),
           });
 
-          const json = await res.json();
+          const text = await res.text();
+          let json;
+          try {
+            json = JSON.parse(text);
+          } catch (e) {
+            json = { success: false, message: text };
+          }
           const resultObj = {
             index,
             toEmail,
@@ -52,8 +78,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             message: json.message,
           };
           results.push(resultObj);
-
-          // Send update back to popup
           chrome.runtime.sendMessage({
             type: "emailStatusUpdate",
             payload: resultObj
@@ -67,8 +91,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             message: err.message,
           };
           results.push(errorObj);
-
-          // Send error back to popup
           chrome.runtime.sendMessage({
             type: "emailStatusUpdate",
             payload: errorObj

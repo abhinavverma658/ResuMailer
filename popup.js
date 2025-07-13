@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const fields = ["position", "smtpEmail", "smtpPassword", "defaultMessage", "resumeFilePath", "excelFilePath"];
+  const fields = ["position", "smtpEmail", "smtpPassword", "defaultMessageArea", "resumeFilePath", "excelFilePath"];
   const getEl = id => document.getElementById(id);
   const secretKey = "resumail_secret";
   const elements = {
     checkbox: getEl("useExcelMessage"),
     defaultMessageWrapper: getEl("defaultMessageWrapper"),
+    defaultMessageArea: getEl("defaultMessageArea"),
     resumeFilePath: getEl("resumeFilePath"),
     excelFilePath: getEl("excelFilePath"),
     selectResumeBtn: getEl("selectResumeBtn"),
@@ -43,6 +44,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toggleMessageVisibility = (useExcel) => {
     if (elements.defaultMessageWrapper)
       elements.defaultMessageWrapper.style.display = useExcel ? "none" : "block";
+    if (elements.defaultMessageArea) {
+      elements.defaultMessageArea.disabled = useExcel;
+    }
   };
 
   if (elements.checkbox) {
@@ -170,6 +174,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           alert(`No ${type} file handle found. Please select it first.`);
           continue;
         }
+        // Prompt user for Yes/No before requesting permission
+        const proceed = confirm(`Do you want to request permission for ${type} file? Click Ok to proceed, Cancel to deny.`);
+        if (!proceed) {
+          alert(`${type} permission denied.`);
+          continue;
+        }
 
         try {
           const result = await handle.requestPermission({ mode: "read" });
@@ -179,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           } else if (result === "denied") {
             alert(`${type} permission denied.`);
           } else {
-            alert(`${type} permission prompt dismissed or unknown result.`);
+            alert(`${type} permission prompt dismissed or unknown result`);
           }
         } catch (err) {
           alert(`Error requesting permission for ${type}: ${err.message}`);
@@ -198,6 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
     statusEl.style.color = "black";
     statusEl.textContent = "Preparing to send...";
+    statusEl.style.display = "block";
   
     const resumeHandle = await loadFileHandle("resume");
     if (!resumeHandle || !(await hasPermission(resumeHandle))) {
@@ -213,50 +224,77 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("No data found in Excel file.");
         return;
       }
-  
-      const useExcel = elements.checkbox.checked;
-      const defaultMessage = getEl("defaultMessage")?.value || "";
-  
-     chrome.runtime.sendMessage({
-    type: "sendEmails",
-    payload: {
-      rows: parsedExcelRows,
-      smtpEmail,
-      smtpPassword,
-      position,
-      resume: {
-        name: resumeFile.name,
-        base64: resumeBase64,
-      },
-      useExcel,
-      defaultMessage
-    },
-  },
-  (response) => {
-    if (chrome.runtime.lastError) {
-      console.error("❌ Message error:", chrome.runtime.lastError.message);
-      statusEl.style.color = "red";
-      statusEl.textContent = "❌ Failed to connect to background script.";
-      return;
-    }
 
-    if (response?.status === "done") {
-      statusEl.style.color = "green";
-      statusEl.textContent = "✅ All emails sent.";
-    } else {
-      statusEl.style.color = "red";
-      statusEl.textContent = "❌ Failed to send some or all emails.";
-    }
-  }
-);
-chrome.runtime.sendMessage({ type: "ping" }, (response) => {
-  if (chrome.runtime.lastError) {
-    console.error("❌ Message error:", chrome.runtime.lastError.message);
-  } else {
-    console.log("✅ Background response:", response);
-  }
-});
- 
+      const useExcel = elements.checkbox.checked;
+      // Use the value from defaultMessageArea if not using Excel message
+      const defaultMessage = useExcel
+        ? ""
+        : elements.defaultMessageArea?.value || "";
+
+      // Track results for summary
+      let emailResults = [];
+      let totalEmails = parsedExcelRows.length;
+      let receivedCount = 0;
+
+      // Listen for status updates for this batch
+      const summaryListener = (request, sender, sendResponse) => {
+        if (request.type === "emailStatusUpdate") {
+          emailResults.push(request.payload);
+          receivedCount++;
+          // When all results received, show summary
+          if (receivedCount === totalEmails) {
+            const failed = emailResults.some(r => r.status !== "sent");
+            if (!failed) {
+              statusEl.style.color = "green";
+              statusEl.textContent = "✅ All emails sent.";
+            } else {
+              statusEl.style.color = "red";
+              statusEl.textContent = "❌ Some emails failed. See details below.";
+            }
+            statusEl.style.display = "block";
+            // Remove listener after batch
+            chrome.runtime.onMessage.removeListener(summaryListener);
+          }
+        }
+      };
+      chrome.runtime.onMessage.addListener(summaryListener);
+
+      chrome.runtime.sendMessage({
+        type: "sendEmails",
+        payload: {
+          rows: parsedExcelRows,
+          smtpEmail,
+          smtpPassword,
+          position,
+          resume: {
+            name: resumeFile.name,
+            base64: resumeBase64,
+          },
+          useExcel,
+          defaultMessage
+        },
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("❌ Message error:", chrome.runtime.lastError.message);
+          statusEl.style.color = "red";
+          statusEl.textContent = "❌ Failed to connect to background script.";
+          chrome.runtime.onMessage.removeListener(statusListener);
+          return;
+        }
+        // If background responds immediately with error
+        if (response && response.status !== "done") {
+          statusEl.style.color = "red";
+          statusEl.textContent = "❌ Failed to send some or all emails.";
+          chrome.runtime.onMessage.removeListener(statusListener);
+        }
+      });
+      chrome.runtime.sendMessage({ type: "ping" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("❌ Message error:", chrome.runtime.lastError.message);
+        } else {
+          console.log("✅ Background response:", response);
+        }
+      });
     });
   });
   console.log("✅ Popup script loaded successfully.");  
@@ -284,7 +322,7 @@ async function fileToBase64(file) {
 async function sendWithRetry(payload, retries = 2) {
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
     try {
-      const res = await fetch("https://resumail-server.onrender.com/send-email", {
+      const res = await fetch("https://resumailer.onrender.com/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -338,12 +376,36 @@ chrome.storage.local.get("parsedExcelRows", console.log);
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "emailStatusUpdate") {
+    // Only append per-email status lines if not in summary mode
     const { toEmail, status, message } = request.payload;
     const statusEl = document.getElementById("statusMessage");
     if (!statusEl) return;
-
-    statusEl.innerHTML += `<div style="color:${status === "sent" ? "green" : "red"}">
-      ${status === "sent" ? "✅" : "❌"} ${toEmail} — ${message}
-    </div>`;
+    // Only append if not already present (avoid duplicates)
+    const line = `<div style=\"color:${status === "sent" ? "green" : "red"}\">\n      ${status === "sent" ? "✅" : "❌"} ${toEmail} — ${message}\n    </div>`;
+    if (!statusEl.innerHTML.includes(line)) {
+      statusEl.innerHTML += line;
+      statusEl.style.display = "block";
+    }
+  }
+  if (request.type === "emailTimerUpdate") {
+      const { nextEmailIndex, secondsLeft } = request.payload;
+      const statusEl = document.getElementById("timer");
+      if (!statusEl) return;
+      // Show timer div when activity starts
+      statusEl.style.display = "block";
+      statusEl.innerHTML = "";
+      const timerDiv = document.createElement("div");
+      timerDiv.id = "email-timer";
+      timerDiv.style.color = "#ffa221";
+      timerDiv.style.fontWeight = "bold";
+      timerDiv.textContent = `Waiting ${secondsLeft}s before sending email #${nextEmailIndex}...`;
+      statusEl.appendChild(timerDiv);
+      // Hide timer when countdown ends
+      if (secondsLeft === 1) {
+        setTimeout(() => {
+          statusEl.innerHTML = "";
+          statusEl.style.display = "none";
+        }, 1200);
+    }
   }
 });
