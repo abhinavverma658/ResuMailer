@@ -7,7 +7,7 @@ const app = express();
 
 // 🔐 Extension origin (for real users, this must be updated if their ID changes)
 // Update your CORS configuration to this:
-const EXTENSION_ID = "okgnjmojdbecdigocokpcmmodflikmnm";
+const EXTENSION_ID = "oomdcamobkckogoiakmmadboaajemjpi";
 const EXTENSION_ORIGIN = `chrome-extension://${EXTENSION_ID}`;
 
 app.use(cors({
