@@ -25,17 +25,18 @@ ResuMailer is a Chrome Extension that eases the process of sending job applicati
 - ✅ **UI built with Bootstrap 5** for lightweight and clean user experience
 
 ---
+
 ## 🧰 Tech Stack
 
-| Layer           | Tech Used                        |
-|----------------|----------------------------------|
-| Frontend       | HTML, CSS, Bootstrap, JS         |
-| Backend        | Node.js, Express.js              |
-| Excel Parsing  | xlsx (SheetJS)                   |
-| Email Sender   | Nodemailer + Gmail SMTP          |
-| File Security  | AES Encryption via CryptoJS      |
-| Hosting        | Render (Express Server)          |
-| File Storage   | IndexedDB (no external servers)  |
+| Layer         | Tech Used                       |
+| ------------- | ------------------------------- |
+| Frontend      | HTML, CSS, Bootstrap, JS        |
+| Backend       | Node.js, Express.js             |
+| Excel Parsing | xlsx (SheetJS)                  |
+| Email Sender  | Nodemailer + Gmail SMTP         |
+| File Security | AES Encryption via CryptoJS     |
+| Hosting       | Render (Express Server)         |
+| File Storage  | IndexedDB (no external servers) |
 
 ---
 
@@ -61,9 +62,9 @@ Your Gmail credentials are never uploaded or sent to any server. Everything is p
 
 Ensure your `.xlsx` file has **exactly** the following column headers (case-sensitive):
 
-| Email           | Company       | Message               |
-|----------------|----------------|------------------------|
-| example@gmail.com | Google       | I'd love to join Google as... |
+| Email             | Company | Message                       |
+| ----------------- | ------- | ----------------------------- |
+| example@gmail.com | Google  | I'd love to join Google as... |
 
 > ❗ Any additional or incorrect fields will result in a parsing error.
 
@@ -94,7 +95,7 @@ Each permission is used strictly within the extension and **never for tracking**
 
 ## 📬 Public Release
 
-The beta version is nearly ready! 
+The beta version is nearly ready!
 
 ---
 
@@ -110,9 +111,9 @@ Follow me on [LinkedIn](https://www.linkedin.com/in/abhinavverma658/) to stay up
 
 ## Author: [Abhinav Verma]
 
-## Version: 1.2.4
+## Version: 1.2.8
 
-## Last Updated: 28-06-2025
+## Last Updated: 14-07-2025
 
 ## © 2025 Abhinav Verma. All Rights Reserved.
 
