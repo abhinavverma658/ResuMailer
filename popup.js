@@ -200,48 +200,62 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   elements.sendBtn?.addEventListener("click", async () => {
     console.log("✅ Send button clicked");
-  
+
     const smtpEmail = getEl("smtpEmail").value;
     const smtpPassword = getEl("smtpPassword").value;
     const position = getEl("position").value;
     const statusEl = document.getElementById("statusMessage");
-  
+
     statusEl.style.color = "black";
     statusEl.textContent = "Preparing to send...";
     statusEl.style.display = "block";
-  
+
     const resumeHandle = await loadFileHandle("resume");
     if (!resumeHandle || !(await hasPermission(resumeHandle))) {
       alert("Resume file not accessible.");
       return;
     }
-  
+
     const resumeFile = await resumeHandle.getFile();
     const resumeBase64 = await fileToBase64(resumeFile);
-  
+
     chrome.storage.local.get("parsedExcelRows", async ({ parsedExcelRows }) => {
+      // Try to re-parse Excel if not found or empty (fix for Mac file handle issues)
+      if (!parsedExcelRows || parsedExcelRows.length === 0) {
+        const excelHandle = await loadFileHandle("excel");
+        if (excelHandle && await hasPermission(excelHandle)) {
+          try {
+            const file = await excelHandle.getFile();
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            parsedExcelRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+            chrome.storage.local.set({ parsedExcelRows });
+          } catch (err) {
+            alert("Failed to parse Excel file: " + err.message);
+            return;
+          }
+        }
+      }
+
       if (!parsedExcelRows || parsedExcelRows.length === 0) {
         alert("No data found in Excel file.");
         return;
       }
 
       const useExcel = elements.checkbox.checked;
-      // Use the value from defaultMessageArea if not using Excel message
       const defaultMessage = useExcel
         ? ""
         : elements.defaultMessageArea?.value || "";
 
-      // Track results for summary
       let emailResults = [];
       let totalEmails = parsedExcelRows.length;
       let receivedCount = 0;
 
-      // Listen for status updates for this batch
       const summaryListener = (request, sender, sendResponse) => {
         if (request.type === "emailStatusUpdate") {
           emailResults.push(request.payload);
           receivedCount++;
-          // When all results received, show summary
           if (receivedCount === totalEmails) {
             const failed = emailResults.some(r => r.status !== "sent");
             if (!failed) {
@@ -252,7 +266,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               statusEl.textContent = "❌ Some emails failed. See details below.";
             }
             statusEl.style.display = "block";
-            // Remove listener after batch
             chrome.runtime.onMessage.removeListener(summaryListener);
           }
         }
@@ -278,14 +291,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           console.error("❌ Message error:", chrome.runtime.lastError.message);
           statusEl.style.color = "red";
           statusEl.textContent = "❌ Failed to connect to background script.";
-          chrome.runtime.onMessage.removeListener(statusListener);
+          chrome.runtime.onMessage.removeListener(summaryListener);
           return;
         }
-        // If background responds immediately with error
         if (response && response.status !== "done") {
           statusEl.style.color = "red";
           statusEl.textContent = "❌ Failed to send some or all emails.";
-          chrome.runtime.onMessage.removeListener(statusListener);
+          chrome.runtime.onMessage.removeListener(summaryListener);
         }
       });
       chrome.runtime.sendMessage({ type: "ping" }, (response) => {
