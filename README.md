@@ -70,10 +70,10 @@ Ensure your `.xlsx` file has **exactly** the following column headers (case-sens
 
 ---
 
-## 📹 Coming Soon
+## 📹
 
-- 🎥 Video Demo
-- 📑 Full documentation
+- 🎥 Video Demo : [https://www.youtube.com/watch?v=tMMWDZ35ePo] (Demo)
+- 📑 Full documentation : [https://docs.google.com/document/d/1PNhin-4SysJP7j89F0nAq8HZDFh8ebaXt4LHN6ee8rI/edit?tab=t.0](Guide)
 - 🧠 Tutorial series on how the internals work
 
 ---
@@ -84,8 +84,6 @@ This extension uses:
 
 - `storage` — to save form data locally
 - `scripting` — to handle background tasks
-- `identity` — for internal Chrome Extension identity verification
-- `activeTab` — to keep the extension lightweight & context-aware
 - `host_permissions` — needed only for file access, not browsing
 - `remote code` — required for backend communication only (Render API)
 
